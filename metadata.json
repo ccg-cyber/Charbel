@@ -1,0 +1,6 @@
+{
+  "name": "Charbel The Legacy - Player Profile",
+  "description": "Official player profile for Charbel 'The Legacy' Geagea (#22, Champs) celebrating the 47-25 victory on September 19, 2026.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

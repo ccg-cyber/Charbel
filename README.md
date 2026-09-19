@@ -1,57 +1,77 @@
-# charbel.cierp.uk
+# Charbel “The Legacy” Geagea #22 — Champs
 
-Deployment scaffold, set up the same way as [Joy Taxi](https://github.com/ccg-cyber/Joy-Taxi).
-**The domain plumbing is here. The site itself is not written yet** — what is
-currently served is a deliberate `noindex` placeholder.
+Live at **https://charbel.cierp.uk/**
 
----
+A player profile, match recap, and a 9:16 WhatsApp Status poster generator for
+Charbel Geagea (#22, Champs) and the 47-25 win over A Team on 19 September 2026.
 
-## How it is deployed
-
-This repository **is** the site. No build step, no framework, no CDN. GitHub
-Pages serves the `gh-pages` branch exactly as it is, and `.nojekyll` stops
-GitHub from running Jekyll over it.
-
-**To change anything live:** edit a file, push to `gh-pages`, and it is live
-within a minute.
-
-**Custom domain** — `charbel.cierp.uk`: the `CNAME` file at the root of this
-branch tells GitHub the domain; the matching record in Cloudflare is
-`CNAME charbel → ccg-cyber.github.io` (DNS only — grey cloud, not proxied).
-GitHub issues the certificate itself once both exist.
+React + Vite + Tailwind v4. Everything runs in the browser: no backend, no API
+keys, no trackers. The poster is drawn on a `<canvas>` at 1080×1920 and saved
+straight from the page, so it works offline once loaded.
 
 ---
 
-## Two switches that are still off
+## Running it
 
-Neither can be thrown from a git push; both are one click each.
+```bash
+npm install
+npm run dev      # http://localhost:3000
+npm run lint     # tsc --noEmit
+npm run build    # -> dist/
+```
 
-1. **GitHub Pages** — repo *Settings → Pages*, set source to branch `gh-pages`,
-   folder `/ (root)`. Then tick **Enforce HTTPS** once the certificate has been
-   issued (it can take a few minutes after DNS resolves).
-2. **Cloudflare DNS** — add `CNAME charbel → ccg-cyber.github.io`, **DNS only**.
-   Proxying it breaks GitHub's certificate issuance.
+## How it deploys
+
+Push to `claude/charbel-app-deployment-fyb55y` (or `main`). The workflow in
+`.github/workflows/deploy.yml` installs, typechecks, builds, and publishes
+`dist/` to the **`gh-pages`** branch, which is what GitHub Pages serves.
+
+The domain needs two things that are not in this repo:
+
+1. **GitHub Pages** — Settings → Pages → source `gh-pages`, folder `/ (root)`,
+   then tick **Enforce HTTPS**.
+2. **Cloudflare DNS** — `CNAME charbel → ccg-cyber.github.io`, **DNS only**
+   (grey cloud). Proxying it stops GitHub issuing the certificate.
+
+`CNAME` and `.nojekyll` are written into `dist/` by the workflow rather than
+kept in the source tree, because Pages reads them from the branch it serves.
 
 ---
 
-## What to change when the real site lands
+## Changing the details
 
-The placeholder is built to be deleted, not edited. When the actual site is
-written, three things have to change or the site will be invisible to search:
+The match, the scores and the copy are written into the components directly:
 
-- `index.html` — replace it. It carries `<meta name="robots" content="noindex, nofollow">`.
-- `404.html` — same; it is also `noindex`.
-- `robots.txt` — currently `Disallow: /`, which blocks the whole site on
-  purpose. Flip it to:
+| What | Where |
+|---|---|
+| Score, date, venue, the top ribbon | `src/components/VictoryRibbon.tsx` |
+| Quarter-by-quarter table, highlights | `src/components/MatchRecapView.tsx` |
+| Biography, creed, attribute bars | `src/components/ProfileView.tsx` |
+| Poster layout and the 1080×1920 canvas | `src/utils/posterGenerator.ts` |
+| Motto presets, filters, export buttons | `src/components/StatusPosterStudio.tsx` |
+| Name, number, header actions | `src/components/Header.tsx` |
 
-  ```
-  User-agent: *
-  Allow: /
+The link-preview card shown when the URL is shared on WhatsApp is
+`public/og.png`, referenced absolutely from `index.html`. If the domain
+changes, update the `og:url` and `og:image` values there too.
 
-  Sitemap: https://charbel.cierp.uk/sitemap.xml
-  ```
+`public/charbel-the-legacy-app.zip` is the downloadable source behind the
+“Download ZIP” button. It is generated from this tree — regenerate it when the
+source changes, or the download will lag behind the live site.
 
-- Add a `sitemap.xml`. There isn't one yet, because there is nothing to list.
+---
 
-If the site gets an Arabic version, it goes in `/ar/index.html` and both URLs
-get `hreflang` entries in the sitemap — that is how Joy Taxi does it.
+## Notes on the mobile layout
+
+The markup relies on an `xs` breakpoint (30rem) that **Tailwind v4 does not
+ship**. It is defined in `src/index.css` under `@theme`. Removing that block
+does not raise an error — the `xs:` classes just silently stop emitting CSS,
+which previously left the score badge and the “Photo” label permanently hidden
+on every device. Keep it.
+
+Similarly, `neutral-850` / `neutral-750` are not real Tailwind colours; if they
+reappear in the markup they render as no background at all.
+
+Checked at 320, 360, 390, 412, 768, 1440 and 1920 px wide — no horizontal
+overflow at any of them, and the quarter table fits without clipping the Final
+column down to 320 px.

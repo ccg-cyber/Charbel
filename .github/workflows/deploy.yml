@@ -1,0 +1,51 @@
+name: Build and deploy to charbel.cierp.uk
+
+# Every push to the source branch rebuilds the site and republishes gh-pages,
+# which is the branch GitHub Pages serves.
+on:
+  push:
+    branches:
+      - claude/charbel-app-deployment-fyb55y
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-gh-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Fail the deploy on a type error rather than shipping a broken bundle.
+      - run: npm run lint
+
+      - run: npm run build
+
+      # CNAME and .nojekyll live in the published output, not the source tree:
+      # GitHub reads them from the branch it serves.
+      - name: Add Pages metadata
+        run: |
+          echo 'charbel.cierp.uk' > dist/CNAME
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          cname: charbel.cierp.uk
