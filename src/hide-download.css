@@ -1,4 +1,5 @@
 /* The source-code ZIP is kept in the repository for maintenance, but is not a public app action. */
-#download-zip-btn {
+#download-zip-btn,
+a[href="/charbel-the-legacy-app.zip"] {
   display: none !important;
 }
