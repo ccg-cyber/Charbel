@@ -5,6 +5,9 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    // Relative asset paths, so the build works at the domain root AND at a
+    // /Charbel/ subpath. Absolute /assets/... would 404 anywhere but the root.
+    base: './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
