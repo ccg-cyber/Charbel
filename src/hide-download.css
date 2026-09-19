@@ -1,0 +1,4 @@
+/* The source-code ZIP is kept in the repository for maintenance, but is not a public app action. */
+#download-zip-btn {
+  display: none !important;
+}
